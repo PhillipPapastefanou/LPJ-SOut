@@ -1,8 +1,8 @@
-Package: gsor
+Package: GuessSmartOut2
 Title: Work with GUESS Smart Output in R
-Version: 0.1
-Authors@R: person("Christian", "Zang", email = "christian.zang@wzw.tum.de", role = c("aut", "cre"))
-Description: Read in GUESS Smart Output from NetCDF files into tibbles
+Version: 1.0
+Authors@R: person("Phillip", "Papastefanou", email = "papa@tum.de", role = c("aut", "cre"))
+Description: Read in GUESS Smart Output from NetCDF files 
 Depends:
     R (>= 3.3.3),
     ncdf4,
