@@ -9,7 +9,7 @@
 ##' @import dplyr
 ##' @import lubridate
 ##' @export
-gso_open <- function(filename, ...) {
+gso_init <- function(filename, ...) {
   nc <- nc_open(filename, ...)
   
   if (nc$format == "NC_FORMAT_64BIT")
@@ -49,11 +49,6 @@ gso_open <- function(filename, ...) {
   if (grepl("Monthly", filename, fixed = T))
   {
     resolution = "monthly"
-    timevarstr = paste("Base", "Time", sep = delim)
-    starttimestr = ncatt_get(nc, timevarstr)$units
-    starttime =unlist(strsplit(starttimestr, split="months since ", fixed=TRUE))[2]
-    #monthssincestart = ncvar_get(nc, timevarstr)
-    #years < -(dmy(starttime) + years(timevals)) %>% year
   }
   
   else if(grepl("Annually", filename, fixed = T))
@@ -63,7 +58,7 @@ gso_open <- function(filename, ...) {
     starttimestr = ncatt_get(nc, timevarstr)$units
     starttime =unlist(strsplit(starttimestr, split="years since ", fixed=TRUE))[2]
     timevals = ncvar_get(nc, timevarstr)
-    years <- (dmy(starttime) + years(timevals)) %>% year
+    time <- (dmy(starttime) + years(timevals)) %>% year
   }
   
   else  
@@ -72,44 +67,20 @@ gso_open <- function(filename, ...) {
   }
   
   varnames = names(nc$var)
-  
-  pftvar_names = as.list(varnames[grepl("Pft-Out", varnames, fixed = T)])
-  pftvar_units = lapply(pftvar_names, get_units, nc = nc)
-  pftvar_ids = match(pftvar_names, varnames)
-  pftvars = data_frame(pftvar_names, pftvar_units, pftvar_ids)
-  
-  patchvar_names = as.list(varnames[grepl("Patch-Out", varnames, fixed = T)])
-  patchvar_units = lapply(patchvar_names, get_units, nc = nc)
-  patchvar_ids = match(patchvar_names, varnames)
-  patchvars = data_frame(patchvar_names, patchvar_units, patchvar_ids)
-
-  
 
   o <- list(
     netcdf = nc,
     resolution = resolution,
     format = format,
-    years = years,
+    time = time,
     lon = lon,
     lat = lat,
     pfts = pfts,
-    pftvars = pftvars,
-    patchvars = patchvars, 
-    gridcells = tibble(cellid, lon, lat)
+    cellid = tibble(cellid, lon, lat)
   )
   class(o) <- "gso"
   o
 }
-
-##' Get the unit of a netcdf variable
-##' @keywords internal
-get_units <- function(varname, nc){
-  ncatt_get(nc,varname)$unit
-} 
-
-
-
-
 
 ##' Break a long line for pretty printing
 ##' @keywords internal
@@ -142,96 +113,6 @@ print.gso <- function(x, ...) {
   cat("Variables:\t", break_print_line(paste(names(x$netcdf$var),
                                              collapse = " ")), "\n")
 }
-
-
-##' @title Extract variables from GUESS smart output into a tibble
-##' @param gso a gso object as return from gso_open
-##' @param varname name of Patch or Pft variable
-##' @return an array
-##' @import dplyr
-##' @export
-gso_getvar_raw <- function(gso, varname) 
-{
-  
-  var_id = match(varname, names(gso$netcdf$var))
-  
-  if (var_id  > length(gso$netcdf$var))  {
-    stop("Variable not found in file.")
-  }
-  
-  ncvar = gso$netcdf$var[[var_id]]
-  
-  ncvar_get(gso$netcdf, ncvar)
-}
-
-
-
-
-
-##' @title Extract variables from GUESS smart output into a tibble
-##' @param gso a gso object as return from gso_open
-##' @param varname name of Patch or Pft variable
-##' @param pft Name of the selected pft
-##' @return a tibble
-##' @import ncdf4
-##' @export
-gso_getvar2 <- function(gso, varname, pft, yearstart = 1, yearend = length(gso$time)) 
-{
-  
-  var_id = match(varname, names(gso$netcdf$var))
-  
-  if (var_id  > length(gso$netcdf$var))  {
-    stop("Variable not found in file.")
-  }
-  ncvar = gso$netcdf$var[[var_id]]
-  
-  pft_id = match(pft, gso$pfts)
-  
-  if (pft_id  > length(gso$pfts))  {
-    stop("Pft not availabe in file")
-  }
-  
-  
-  if (timestart == 1) {
-    start_index = 1
-  }
-  else  {
-    start_index = match(yearstart, gso$time)
-  }
-  
-  
-  if (is.na(start_index)) {
-    stop("Selected start timepoint out of file bounds")
-    
-  }
-  
- 
-  count_index = yearend -  yearstart + 1
-  
-  
-  if (grepl("Pft-Out", varname, fixed = T)) {
-    
-    start = c(pft_id, start_index, 1)
-    count = c(1, count_index, length(gso$lon))
-    
-  }
-  
-  else if (grepl("Patch-Out", varname, fixed = T)) {
-    
-    start = c(start_index, 1)
-    count = c(count_index, length(gso$lon))
-  }
-  
-  else  {
-    stop("Error invalid output variable type supplied")
-    
-  }
-  
-  ncvar_get(gso$netcdf, ncvar, start = start, count = count)
-}
-
-
-
 
 ##' Extract variables from GUESS smart output into a tibble
 ##'

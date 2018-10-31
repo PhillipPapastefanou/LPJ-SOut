@@ -2,6 +2,9 @@
 
 S3method(print,gso)
 export(gso_getvar)
+export(gso_getvar2)
+export(gso_getvar_raw)
+export(gso_init)
 export(gso_open)
 import(dplyr)
 import(lubridate)
