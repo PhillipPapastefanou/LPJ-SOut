@@ -192,7 +192,7 @@ gso_getvar2 <- function(gso, varname, pft, yearstart = 1, yearend = length(gso$t
   }
   
   
-  if (timestart == 1) {
+  if (yearstart == 1) {
     start_index = 1
   }
   else  {
