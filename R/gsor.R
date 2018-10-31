@@ -175,7 +175,7 @@ gso_getvar_raw <- function(gso, varname)
 ##' @return a tibble
 ##' @import ncdf4
 ##' @export
-gso_getvar2 <- function(gso, varname, pft, yearstart = 1, yearend = length(gso$time)) 
+gso_getvar2 <- function(gso, varname, pft, yearstart = 1, yearend = length(gso$years)) 
 {
   
   var_id = match(varname, names(gso$netcdf$var))
@@ -196,7 +196,7 @@ gso_getvar2 <- function(gso, varname, pft, yearstart = 1, yearend = length(gso$t
     start_index = 1
   }
   else  {
-    start_index = match(yearstart, gso$time)
+    start_index = match(yearstart, gso$years)
   }
   
   
